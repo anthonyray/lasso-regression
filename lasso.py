@@ -10,7 +10,7 @@ from sklearn import cross_validation
 winedata = pd.read_csv("data/winequality-red.csv",delimiter=";")
 winedata.dropna()  # Dropping useless data.
 
-quality = np.reshape(winedata["quality"].values,[winedata["quality"].values.shape[0],1]) # Preparing data for numpy
+quality = np.reshape(winedata["quality"].values,[winedata["quality"].values.shape[0],]) # Preparing data for numpy
 
 data = winedata.drop("quality",1) # We want to predict quality, so we leave from the features. 
 data = np.reshape(data.values,[data.values.shape[0],data.values.shape[1]]) # Preparing data for numpy
@@ -46,7 +46,7 @@ print  y[158],y[159],y[213]
 winedata = pd.read_csv("data/winequality-white.csv",delimiter=";")
 winedata.dropna()
 
-y = np.reshape(winedata["quality"].values,[winedata["quality"].values.shape[0],1])
+y = np.reshape(winedata["quality"].values,[winedata["quality"].values.shape[0],])
 y = (y - np.mean(y)) / np.std(y) # Normalizing observations
 
 data = winedata.drop("quality",1)
@@ -86,20 +86,25 @@ plt.xlabel("Penalisations")
 plt.ylabel("thetas")
 
 # Question 5
+
 # Determinitation of the penalisation factor with Cross Validation
+
 #lasscv = linear_model.LassoCV(cv=20)
 
-lasscv = linear_model.MultiTaskLassoCV(alphas=penalisations,fit_intercept=False)
-lasscv.fit(X,y)
+lassCV = linear_model.LassoCV(alphas=penalisations,fit_intercept=False,normalize=False)
+lassCV.fit(X,y)
+
 # Question 5b
 print "Lasso with CV : "
-print "Penalisation trouvée par CV : " + str(lasscv.alpha_)
+print "Penalisation trouvée par CV : " + str(lassCV.alpha_)
+
+# Determining the smallest penalisation factor so that all coefficients equal to 0. 
 
 # Question 5c
 x_test = np.array([6,0.3,0.2,6,0.053,25,149,0.9934,3.24,0.35,10])
 
 print "Score : "
-print lasscv.predict(x_test)
+print lassCV.predict(x_test)
 
 # Question 5d
 # Using OLS, without penalisation
@@ -111,13 +116,21 @@ print("Somme des carrés des erreurs OLS:")
 print np.mean( (ols.predict(X) - y) ** 2)
 
 print("Somme des carrés des erreurs LassoCV:")
-print np.mean( (lasscv.predict(X) - y) ** 2)
+print np.mean( (lassCV.predict(X) - y) ** 2)
 
 print("Bias for OLS :")
 print np.mean(ols.coef_)
 
 print("Bias for LassoCV : ")
-print np.mean(lasscv.coef_)
+print np.mean(lassCV.coef_)
 
 
 # Question 5e
+# Applying OLS sur les variables actives en sortie du Lasso (on ne garde que les 
+
+reg = linear_model.LinearRegression(fit_intercept=True)
+reg.fit(lassCV.predict(X),y)
+
+
+
+print (reg.coef_)
