@@ -26,11 +26,11 @@ print("réalisé avec " + str(data.shape[0]) + " observations.")
 print("Coefficients : \n",regr.coef_)
 
 # 1.b
-y = (quality - np.mean(quality)) / np.std(quality) # Normalize
 
-data_means = np.mean(data,axis=0)
-for i in range(data.shape[1]):
-    data[:,i] = data[:,i] - np.mean(data[:,i])
+y = (quality - np.mean(quality)) / np.std(quality) # Normalizing features
+
+for i in range(data.shape[1]): # Normalizing observations
+    data[:,i] = (data[:,i] - np.mean(data[:,i]))/np.std(data[:,i])
 
 X = data
 
@@ -47,18 +47,17 @@ winedata = pd.read_csv("data/winequality-white.csv",delimiter=";")
 winedata.dropna()
 
 y = np.reshape(winedata["quality"].values,[winedata["quality"].values.shape[0],1])
-y = y - np.mean(y)
+y = (y - np.mean(y)) / np.std(y) # Normalizing observations
 
 data = winedata.drop("quality",1)
 X = np.reshape(data.values,[data.values.shape[0],data.values.shape[1]])
 
-for i in range(X.shape[1]):
-    X[:,i] = X[:,i] - np.mean(X[:,i])
-
-
+for i in range(X.shape[1]): # Normalizing features
+    X[:,i] = (X[:,i] - np.mean(X[:,i]))/np.std(X[:,i])
 
 
 # Question 3
+
 def Lasso(X,y,penalisation): # Where X are the features, Y the observations, and the penalisation factor
     lass = linear_model.Lasso(fit_intercept=False,alpha=penalisation)
     lass.fit(X,y)
@@ -67,20 +66,24 @@ def Lasso(X,y,penalisation): # Where X are the features, Y the observations, and
 # Question 4
 
 # Plotting coefficients amplitude according to penalisation
+# We decide on a range for penalisations : for 10e-5 to 10e2. 
 
-penalisations = np.logspace(-6, 3, 200)
+penalisations = np.logspace(-6, 3, 200) # We take 200 penalisations in the range defined before
 
+coeffs = list() 
 
-coeffs = list()
 for penalisation in penalisations:
     output = Lasso(X,y,penalisation)
     coeffs.append(output[0])
+
+# Plotting the result
 
 fig1=plt.figure(figsize=(12,8))
 ax1 = fig1.add_subplot(111)
 ax1.set_xscale('log')
 ax1.plot(penalisations,coeffs)
-
+plt.xlabel("Penalisations")
+plt.ylabel("thetas")
 
 # Question 5
 # Determinitation of the penalisation factor with Cross Validation
